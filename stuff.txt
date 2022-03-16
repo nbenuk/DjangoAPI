@@ -1,0 +1,3 @@
+source django_env/bin/activate  
+
+python manage.py runserver
