@@ -18,7 +18,7 @@ class Module(models.Model):
 
 class ModuleInstance(models.Model):
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
-    year = models.DateField(default=timezone.now)
+    year = models.CharField(max_length=10)
 
     semester = models.IntegerField(        
         validators=[MaxValueValidator(2), MinValueValidator(1)])

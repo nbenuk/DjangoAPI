@@ -120,7 +120,7 @@ def rate(request):
         try:
             data = request.data
             year = request.data.get('year') #not exact year
-            year = year + "-01-01"
+            year = year 
 
             semester = request.data.get('semester')
             profCode = request.data.get('professor')
