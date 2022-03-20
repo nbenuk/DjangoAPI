@@ -4,7 +4,6 @@ from .models import Module, ModuleInstance, Professor, Rating
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
-
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
 #     class Meta:
 #         model = User
@@ -32,16 +31,17 @@ class ModuleInstanceSerializer(serializers.ModelSerializer):
             read_only=True,
             slug_field="name"
         )
+    # module = serializers.SlugRelatedField(
+    #         many=False,
+    #         read_only=True,
+    #         slug_field="name"
+    #     )
     module = serializers.SlugRelatedField(
             many=False,
             read_only=True,
-            slug_field="name"
+            slug_field="code"
         )
-    # code = serializers.SlugRelatedField(
-    #         many=False,
-    #         read_only=True,
-    #         slug_field="code",""
-    #     )
+
     class Meta:
         model = ModuleInstance
         fields = ('module', 'professor', 'year', 'semester')

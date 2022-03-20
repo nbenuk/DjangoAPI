@@ -32,5 +32,7 @@ class Rating(models.Model):
     rating = models.IntegerField(
         validators=[MaxValueValidator(5), MinValueValidator(1)])
     professor = models.ForeignKey(Professor, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.module.module.name
 
 

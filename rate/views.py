@@ -7,7 +7,7 @@ from django.db.models import Sum, Avg
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated 
 from rest_framework import permissions
-
+from rest_framework.authtoken.models import Token
 from .models import Module, ModuleInstance, Professor, Rating, User
 from . serializers import ModuleInstanceSerializer, RatingSerializer, UserSerializer
 import json
@@ -56,6 +56,14 @@ def list(request):
             list = ModuleInstance.objects.all()
             serializer = ModuleInstanceSerializer(list, many=True)
             response = serializer.data
+            # dddss
+            resp = []
+            for elem in list:
+                for respp in response:
+                    out = {"code":elem.module.code,"name":elem.module.name}
+                    resp.append(out)
+                    (respp.update({"name":elem.module.name}))
+            return JsonResponse( response, safe=False)
         except:
             response = json.dumps([{'Error':'No Records Found'}])
         return JsonResponse(response, safe=False)
@@ -82,11 +90,23 @@ def avg(request):
     try:
         profCode = request.query_params.get('code')
         modCode = request.query_params.get('module')
-        modCode = ModuleInstance.objects.get(code=modCode)
+        # module object
+        modCode = Module.objects.get(code=modCode)
+        # professor object
         professor =  Professor.objects.get(code=profCode)
-        avg = Rating.objects.filter(professor=Professor.objects.get(code=profCode).id, module=modCode).aggregate(Avg('rating'))
-        prof_rate = {"code": professor.code, "name": professor.name, "avg": avg.get('rating__avg')}
+        # instances with module /and professor
+        instance = ModuleInstance.objects.filter(module=modCode)
+        rating = Rating.objects.filter(professor=professor, module__in = instance).aggregate(Avg('rating'))
+
+        # avg= Rating.objects.filter(module=instance).aggregate(Avg('rating'))
+        # .filter(professor=professor.id)
+        # .aggregate(Avg('rating'))
+        
+        # avg = Rating.objects.filter(professor=Professor.objects.get(code=profCode).id, module=instance).aggregate(Avg('rating')) 
+        prof_rate = {"code": professor.code, "name": professor.name, "avg": rating.get('rating__avg')}
         response=( prof_rate )
+        # breakpoint()
+        # response = ({"ok":"ok"})
     except Exception as e:
         response = json.dumps([{'Error':'No Records Found'}])
         raise e
@@ -104,13 +124,15 @@ def rate(request):
 
             semester = request.data.get('semester')
             profCode = request.data.get('professor')
+            token = request.data.get('token')
+
             professor =  Professor.objects.get(code=profCode).pk
             moduleCode = request.data.get('module')
             module =  Module.objects.get(code=moduleCode).pk
             rating = request.data.get('rating')
             moduleInstance = ModuleInstance.objects.filter(module=module, year=year, semester = semester)[0]
-            user = User.objects.get(username=request.user.username)
-            if ((Rating.objects.filter(username=user, module=moduleInstance).count()) != 0):
+            user = Token.objects.get(key=token).user
+            if ((Rating.objects.filter(username=user, module=moduleInstance, professor=professor).count()) != 0):
                 response = json.dumps([{'Error':'Module rating previously submitted.'}])
                 return JsonResponse(response, safe=False)
 
